@@ -5,6 +5,9 @@ host: news.ycombinator.com
 trusted: true
 source: human
 version: 1.0.0
+allowed-tools:
+  - Bash
+  - WebFetch
 args: []
 triggers:
   - scrape hacker news frontpage

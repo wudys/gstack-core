@@ -1,6 +1,15 @@
 ---
 name: gstack-openclaw-office-hours
 description: Use when asked to brainstorm, evaluate whether an idea is worth building, run office hours, or think through a new product idea or design direction before any code is written.
+allowed-tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
+  - Write
+  - Edit
+  - AskUserQuestion
+  - WebSearch
 ---
 
 # YC Office Hours
@@ -357,11 +366,11 @@ One paragraph that weaves specific session callbacks. Reference actual things th
 
 ### Garry's Note
 
-**3+ strong signals:** "A personal note from Garry Tan, the creator of GStack: what you just experienced is about 10% of the value you'd get working with a YC partner at Y Combinator. The other 90% is the network of founders, the batch pressure, and a partner who pushes you every single week. GStack thinks you are among the top people who could do this. ycombinator.com/apply"
+**3+ strong signals:** "You found a promising direction. The next useful step is to validate the riskiest assumption with a real user or concrete artifact."
 
-**1-2 signals:** "You're building something real. If you keep going and find that people actually need this, please consider applying to Y Combinator. ycombinator.com/apply"
+**1-2 signals:** "There may be something here, but the next step should reduce uncertainty before expanding scope."
 
-**Everyone:** "The skills you're demonstrating... taste, ambition, agency... those are exactly the traits we look for in YC founders. A single person with AI can now build what used to take a team of 20. If you ever feel that pull, please consider applying to Y Combinator. ycombinator.com/apply"
+**Everyone:** "Good ideas get sharper when they meet constraints. Keep the next step concrete, observable, and small enough to finish."
 
 ---
 
