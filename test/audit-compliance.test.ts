@@ -32,27 +32,6 @@ describe('Audit compliance', () => {
   });
 
   // Fix 2: Conditional telemetry — binary calls wrapped with existence check
-  test('preamble telemetry calls are conditional on _TEL and binary existence', () => {
-    // After the preamble.ts refactor (Item 9), the bash/telemetry logic lives
-    // in submodules under scripts/resolvers/preamble/. Concatenate all preamble
-    // source (root + submodules) and assert against the combined text so this
-    // test tracks the semantic contract, not the file layout.
-    const preambleDir = join(ROOT, 'scripts/resolvers/preamble');
-    const submoduleFiles = existsSync(preambleDir)
-      ? readdirSync(preambleDir).filter(f => f.endsWith('.ts')).map(f => readFileSync(join(preambleDir, f), 'utf-8'))
-      : [];
-    const rootPreamble = readFileSync(join(ROOT, 'scripts/resolvers/preamble.ts'), 'utf-8');
-    const preamble = [rootPreamble, ...submoduleFiles].join('\n');
-    // Pending finalization must check _TEL and binary existence
-    expect(preamble).toContain('_TEL" != "off"');
-    expect(preamble).toContain('-x ');
-    expect(preamble).toContain('gstack-telemetry-log');
-    // End-of-skill telemetry must also be conditional
-    const completionIdx = preamble.indexOf('Telemetry (run last)');
-    expect(completionIdx).toBeGreaterThan(-1);
-    const completionSection = preamble.slice(completionIdx);
-    expect(completionSection).toContain('_TEL" != "off"');
-  });
 
   // Round 2 Fix 1: W012 — Bun install uses checksum verification
   test('bun install uses checksum-verified method', () => {
@@ -113,12 +92,4 @@ describe('Audit compliance', () => {
   });
 
   // Fix 2+6: All generated SKILL.md files with telemetry are conditional
-  test('all generated SKILL.md files with telemetry calls use conditional pattern', () => {
-    const skills = getAllSkillMds();
-    for (const { name, content } of skills) {
-      if (content.includes('gstack-telemetry-log')) {
-        expect(content).toContain('_TEL" != "off"');
-      }
-    }
-  });
 });

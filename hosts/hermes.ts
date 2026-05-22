@@ -49,13 +49,10 @@ const hermes: HostConfig = {
     'CODEX_SECOND_OPINION',
     'CODEX_PLAN_REVIEW',
     'REVIEW_ARMY',
-    // GBRAIN_CONTEXT_LOAD and GBRAIN_SAVE_RESULTS are NOT suppressed.
-    // The resolvers handle GBrain-not-installed gracefully ("proceed without brain context").
-    // If Hermes has GBrain as a mod, brain features activate automatically.
   ],
 
   runtimeRoot: {
-    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'gstack-upgrade', 'ETHOS.md'],
+    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'ETHOS.md'],
     globalFiles: {
       'review': ['checklist.md', 'TODOS-format.md'],
     },

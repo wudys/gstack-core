@@ -312,7 +312,7 @@ describe('classifyVisible (runtime path through the runner classifier)', () => {
 
   test('permission dialog (Bash) → returns null (skip, keep polling)', () => {
     const visible = `
-      Bash command \`gstack-update-check\` requires permission to run.
+      Bash command \`gstack-config\` requires permission to run.
 
       ❯ 1. Yes
         2. No

@@ -10,12 +10,7 @@ const CONFIG_BIN = path.join(ROOT, 'bin', 'gstack-config');
 // build an authoritative set of "valid keys" from the script. Instead, defend
 // the specific invariant this wave introduces: deprecated keys must not
 // reappear in user-facing docs. Extend the denylist as future renames happen.
-const DEPRECATED_KEYS = new Set<string>([
-  // Renamed to artifacts_sync_mode in v1.27.0.0, doc references re-deprecated
-  // in v1.36.0.0 alongside the same rename of *_prompted.
-  'gbrain_sync_mode',
-  'gbrain_sync_mode_prompted',
-]);
+const DEPRECATED_KEYS = new Set<string>();
 
 function scanDocsForConfigKeys(): { docPath: string; key: string; line: number }[] {
   const hits: { docPath: string; key: string; line: number }[] = [];
@@ -94,11 +89,11 @@ describe('docs ↔ gstack-config key drift guard', () => {
     }
   });
 
-  test.skipIf(process.platform === 'win32')('`gstack-config get artifacts_sync_mode` returns a value (the rename landed)', () => {
+  test.skipIf(process.platform === 'win32')('`gstack-config get skill_prefix` returns a documented default', () => {
     // Run from a clean HOME so the user's local config doesn't pollute.
     const tmpHome = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gstack-cfg-'));
     try {
-      const result = runConfig(['get', 'artifacts_sync_mode'], tmpHome);
+      const result = runConfig(['get', 'skill_prefix'], tmpHome);
       expect(result.status).toBe(0);
       // A known key returns its default value, not the "unknown key" error string.
       expect(result.stderr).not.toContain('not recognized');

@@ -33,6 +33,7 @@ const factory: HostConfig = {
     { from: '.claude/skills/gstack', to: '.factory/skills/gstack' },
     { from: '.claude/skills/review', to: '.factory/skills/gstack/review' },
     { from: '.claude/skills', to: '.factory/skills' },
+    { from: 'CLAUDE.md', to: 'AGENTS.md' },
   ],
   toolRewrites: {
     'use the Bash tool': 'run this command',
@@ -43,10 +44,10 @@ const factory: HostConfig = {
     'use the Glob tool': 'find files matching',
   },
 
-  suppressedResolvers: ['GBRAIN_CONTEXT_LOAD', 'GBRAIN_SAVE_RESULTS'],
+  suppressedResolvers: [],
 
   runtimeRoot: {
-    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'gstack-upgrade', 'ETHOS.md'],
+    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'ETHOS.md'],
     globalFiles: {
       'review': ['checklist.md', 'TODOS-format.md'],
     },

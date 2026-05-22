@@ -80,14 +80,14 @@ gstack/
 │   ├── claude.ts    # Primary host config
 │   ├── codex.ts, factory.ts, kiro.ts  # Existing hosts
 │   ├── opencode.ts, slate.ts, cursor.ts, openclaw.ts  # IDE hosts
-│   ├── hermes.ts, gbrain.ts  # Agent runtime hosts
+│   ├── hermes.ts  # Agent runtime hosts
 │   └── index.ts     # Registry: exports all, derives Host type
 ├── scripts/         # Build + DX tooling
 │   ├── gen-skill-docs.ts  # Template → SKILL.md generator (config-driven)
 │   ├── host-config.ts     # HostConfig interface + validator
 │   ├── host-config-export.ts  # Shell bridge for setup script
 │   ├── host-adapters/     # Host-specific adapters (OpenClaw tool mapping)
-│   ├── resolvers/   # Template resolver modules (preamble, design, review, gbrain, etc.)
+│   ├── resolvers/   # Template resolver modules (preamble, design, review, etc.)
 │   ├── skill-check.ts     # Health dashboard
 │   └── dev-skill.ts       # Watch mode
 ├── test/            # Skill validation + eval tests
@@ -367,17 +367,11 @@ Names are either short (`qa`) or namespaced (`gstack-qa`), controlled by
 skip the interactive prompt.
 
 **Note:** Vendoring gstack into a project's repo is deprecated. Use global install
-+ `./setup --team` instead. See README.md for team mode instructions.
+instead.
 
 **For plan reviews:** When reviewing plans that modify skill templates or the
 gen-skill-docs pipeline, consider whether the changes should be tested in isolation
 before going live (especially if the user is actively using gstack in other windows).
-
-**Upgrade migrations:** When a change modifies on-disk state (directory structure,
-config format, stale files) in ways that could break existing user installs, add a
-migration script to `gstack-upgrade/migrations/`. Read CONTRIBUTING.md's "Upgrade
-migrations" section for the format and testing requirements. The upgrade skill runs
-these automatically after `./setup` during `/gstack-upgrade`.
 
 ## Compiled binaries — NEVER commit browse/dist/ or design/dist/
 
@@ -839,40 +833,3 @@ Key routing rules:
 - Ship/deploy/PR → invoke /ship or /land-and-deploy
 - Save progress → invoke /context-save
 - Resume context → invoke /context-restore
-
-## GBrain Search Guidance (configured by /sync-gbrain)
-<!-- gstack-gbrain-search-guidance:start -->
-
-GBrain is set up and synced on this machine. The agent should prefer gbrain
-over Grep when the question is semantic or when you don't know the exact
-identifier yet.
-
-**This worktree is pinned to a worktree-scoped code source** via the
-`.gbrain-source` file in the repo root (kubectl-style context). Any
-`gbrain code-def`, `code-refs`, `code-callers`, `code-callees`, or `query`
-call from anywhere under this worktree routes to that source by default —
-no `--source` flag needed. Conductor sibling worktrees of the same repo
-each have their own pin and their own indexed pages, so semantic results
-match the actual code on disk in this worktree.
-
-Two indexed corpora available via the `gbrain` CLI:
-- This worktree's code (auto-pinned via `.gbrain-source`).
-- `~/.gstack/` curated memory (registered as `gstack-brain-<user>` source via
-  the existing federation pipeline).
-
-Prefer gbrain when:
-- "Where is X handled?" / semantic intent, no exact string yet:
-    `gbrain search "<terms>"` or `gbrain query "<question>"`
-- "Where is symbol Y defined?" / symbol-based code questions:
-    `gbrain code-def <symbol>` or `gbrain code-refs <symbol>`
-- "What calls Y?" / "What does Y depend on?":
-    `gbrain code-callers <symbol>` / `gbrain code-callees <symbol>`
-- "What did we decide last time?" / past plans, retros, learnings:
-    `gbrain search "<terms>" --source gstack-brain-<user>`
-
-Grep is still right for known exact strings, regex, multiline patterns, and
-file globs. Run `/sync-gbrain` after meaningful code changes; for ongoing
-auto-sync across all worktrees, run `gbrain autopilot --install` once per
-machine — gbrain's daemon handles incremental refresh on a schedule.
-
-<!-- gstack-gbrain-search-guidance:end -->

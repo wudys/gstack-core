@@ -108,16 +108,3 @@ poisoning a different domain.
 | `Cannot save domain-skill: no top-level URL on active tab` | Tab is `about:blank` or `chrome://...` | `$B goto <target-site>` first, then save. |
 | `Cannot promote: skill is in state "quarantined"` | Skill hasn't auto-promoted yet | Use it in this project until 3 successful runs without classifier flags. |
 | `Cannot rollback: <host> has fewer than 2 versions` | Only one version exists | Use `$B domain-skill rm` to delete instead. |
-
-## Telemetry
-
-When telemetry is enabled (default `community` mode unless turned off), the
-following events are written to `~/.gstack/analytics/browse-telemetry.jsonl`:
-
-- `domain_skill_saved {host, scope, state, bytes}`
-- `domain_skill_save_blocked {host, reason}`
-- `domain_skill_fired {host, source, version}`
-- `domain_skill_state_changed {host, from_state, to_state}` (planned)
-
-Hostname only — no body content, no agent text. Disable entirely with
-`gstack-config set telemetry off` or `GSTACK_TELEMETRY_OFF=1`.

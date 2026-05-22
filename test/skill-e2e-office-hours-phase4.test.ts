@@ -59,12 +59,12 @@ function setupOfficeHoursDir(): string {
   run('git', ['config', 'user.name', 'Test']);
 
   // Seed a tiny project context so the skill has something to reason about.
-  fs.writeFileSync(path.join(dir, 'README.md'), `# gbrain-retrieval
+  fs.writeFileSync(path.join(dir, 'README.md'), `# retrieval-surface
 
-We're building a retrieval surface for gbrain so cross-skill memory works
+We're building a retrieval surface so cross-skill memory works
 end-to-end. There are three architectural shapes worth considering: server-side
-(gbrain ships the smarts), client-side (gstack ships the smarts), and a hybrid
-that ships V1 client-side and promotes to gbrain in V1.5.
+(shared service ships the smarts), client-side (local package ships the smarts),
+and a hybrid that ships V1 client-side and promotes to the shared service in V1.5.
 `);
   run('git', ['add', '.']);
   run('git', ['commit', '-m', 'seed']);
@@ -119,12 +119,12 @@ describeIfSelected('Office Hours Phase 4 — Architectural fork must surface Ask
     const result = await runSkillTest({
       prompt: `Read office-hours/SKILL.md for the workflow.
 
-Context: this is BUILDER MODE (Path B). The project is gbrain-retrieval — see README.md. I have a fully-formed plan and have already accepted all your Phase 3 premises. Skip Phase 1, Phase 2, and Phase 3 entirely.
+Context: this is BUILDER MODE (Path B). The project is retrieval-surface — see README.md. I have a fully-formed plan and have already accepted all your Phase 3 premises. Skip Phase 1, Phase 2, and Phase 3 entirely.
 
 Proceed directly to Phase 4 (Alternatives Generation). Generate 2-3 distinct architectural approaches that differ in KIND (not in coverage). Realistic shapes for this project:
-  A) Server-side: gbrain ships the retrieval smarts as new MCP tools (e.g. get_recent_salience, find_anomalies).
-  B) Client-side: gstack ships a helper (bin/gstack-brain-context-load) that composes salience client-side from existing MCP tools.
-  C) Hybrid: V1 client-side in gstack; V1.5 promotes to gbrain server-side once the salience signal is validated.
+  A) Server-side: a shared service ships the retrieval smarts as new MCP tools (e.g. get_recent_salience, find_anomalies).
+  B) Client-side: the local package ships a helper that composes salience client-side from existing MCP tools.
+  C) Hybrid: V1 client-side locally; V1.5 promotes to the shared service once the salience signal is validated.
 
 Do not skip Phase 4 — the test depends on you reaching it.
 

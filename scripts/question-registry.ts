@@ -487,18 +487,6 @@ export const QUESTIONS = {
   },
 
   // -----------------------------------------------------------------------
-  // /gstack-upgrade — version upgrade
-  // -----------------------------------------------------------------------
-  'gstack-upgrade-inline': {
-    id: 'gstack-upgrade-inline',
-    skill: 'gstack-upgrade',
-    category: 'approval',
-    door_type: 'two-way',
-    options: ['yes-upgrade', 'always-auto', 'not-now', 'never-ask'],
-    description: "Upgrade gstack now? (Also: always auto-upgrade, snooze, or disable the prompt.)",
-  },
-
-  // -----------------------------------------------------------------------
   // Preamble one-time prompts (telemetry, proactive, routing)
   // -----------------------------------------------------------------------
   'preamble-telemetry-consent': {

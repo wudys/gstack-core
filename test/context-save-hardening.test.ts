@@ -8,7 +8,6 @@
  *   - Bash-side title sanitizer (allowlist a-z0-9.-, cap 60, default "untitled")
  *   - Collision-safe filenames (random suffix on same-second double-save)
  *   - head -20 cap on the restore-flow directory listing
- *   - Migration HOME unset guard
  *   - Empty-set "NO_CHECKPOINTS" fallback
  */
 
@@ -17,8 +16,6 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-
-const ROOT = path.resolve(import.meta.dir, '..');
 
 // The exact sanitize+collision bash used by context-save/SKILL.md Step 4.
 // Kept in sync with context-save/SKILL.md.tmpl. If the template changes
@@ -309,41 +306,5 @@ describe('context-restore: find + sort + head cap', () => {
     // Must NOT contain any .md filename from cwd.
     expect(out).not.toContain('SKILL.md');
     expect(out).not.toContain('README.md');
-  });
-});
-
-// ─── Migration HOME guard ──────────────────────────────────────────────────
-
-describe('migration v1.1.3.0: HOME guard', () => {
-  let tmp: string;
-  const MIGRATION = path.join(ROOT, 'gstack-upgrade', 'migrations', 'v1.1.3.0.sh');
-
-  beforeEach(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ctx-home-')); });
-  afterEach(() => { try { fs.rmSync(tmp, { recursive: true, force: true }); } catch {} });
-
-  test('HOME unset → exits 0 with diagnostic, no filesystem changes', () => {
-    // Create a file that would be wiped by an HOME="" bug: /.claude/skills/gstack/checkpoint
-    // (not actually writable by the test, but we verify the script doesn't TRY).
-    // Spawn without HOME in env.
-    const env = { PATH: process.env.PATH || '/usr/bin:/bin' } as Record<string, string>;
-    const result = spawnSync('bash', [MIGRATION], {
-      env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 5000,
-    });
-    expect(result.status).toBe(0);
-    expect(result.stderr.toString()).toContain('HOME is unset');
-  });
-
-  test('HOME="" → exits 0 with diagnostic', () => {
-    const result = spawnSync('bash', [MIGRATION], {
-      env: { HOME: '', PATH: process.env.PATH || '/usr/bin:/bin' },
-      stdio: ['ignore', 'pipe', 'pipe'],
-      timeout: 5000,
-    });
-    expect(result.status).toBe(0);
-    expect(result.stderr.toString()).toContain('HOME is unset or empty');
-    // Critical: no stdout (no "Removed stale" messages — nothing touched).
-    expect(result.stdout.toString().trim()).toBe('');
   });
 });

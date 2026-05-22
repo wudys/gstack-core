@@ -11,7 +11,7 @@ import { generateTestFailureTriage } from './preamble';
 import { generateCommandReference, generateSnapshotFlags, generateBrowseSetup } from './browse';
 import { generateDesignMethodology, generateDesignHardRules, generateDesignOutsideVoices, generateDesignReviewLite, generateDesignSketch, generateDesignSetup, generateDesignMockup, generateDesignShotgunLoop, generateTasteProfile, generateUXPrinciples } from './design';
 import { generateTestBootstrap, generateTestCoverageAuditPlan, generateTestCoverageAuditShip, generateTestCoverageAuditReview } from './testing';
-import { generateReviewDashboard, generatePlanFileReviewReport, generateExitPlanModeGate, generateAntiShortcutClause, generateSpecReviewLoop, generateBenefitsFrom, generateCodexSecondOpinion, generateAdversarialStep, generateCodexPlanReview, generatePlanCompletionAuditShip, generatePlanCompletionAuditReview, generatePlanVerificationExec, generateScopeDrift, generateCrossReviewDedup } from './review';
+import { generateReviewDashboard, generatePlanFileReviewReport, generateCompletionGate, generateAntiShortcutClause, generateSpecReviewLoop, generateBenefitsFrom, generateCodexSecondOpinion, generateAdversarialStep, generateCodexPlanReview, generatePlanCompletionAuditShip, generatePlanCompletionAuditReview, generatePlanVerificationExec, generateScopeDrift, generateCrossReviewDedup } from './review';
 import { generateSlugEval, generateSlugSetup, generateBaseBranchDetect, generateDeployBootstrap, generateQAMethodology, generateCoAuthorTrailer, generateChangelogWorkflow } from './utility';
 import { generateLearningsSearch, generateLearningsLog } from './learnings';
 import { generateConfidenceCalibration } from './confidence';
@@ -19,7 +19,6 @@ import { generateInvokeSkill } from './composition';
 import { generateReviewArmy } from './review-army';
 import { generateDxFramework } from './dx';
 import { generateModelOverlay } from './model-overlay';
-import { generateGBrainContextLoad, generateGBrainSaveResults } from './gbrain';
 import { generateQuestionPreferenceCheck, generateQuestionLog, generateInlineTuneFeedback } from './question-tuning';
 import { generateMakePdfSetup } from './make-pdf';
 import { generateTasksSectionEmit, generateTasksSectionAggregate } from './tasks-section';
@@ -40,7 +39,7 @@ export const RESOLVERS: Record<string, ResolverFn> = {
   DESIGN_REVIEW_LITE: generateDesignReviewLite,
   REVIEW_DASHBOARD: generateReviewDashboard,
   PLAN_FILE_REVIEW_REPORT: generatePlanFileReviewReport,
-  EXIT_PLAN_MODE_GATE: generateExitPlanModeGate,
+  COMPLETION_GATE: generateCompletionGate,
   ANTI_SHORTCUT_CLAUSE: generateAntiShortcutClause,
   TEST_BOOTSTRAP: generateTestBootstrap,
   TEST_COVERAGE_AUDIT_PLAN: generateTestCoverageAuditPlan,
@@ -73,8 +72,6 @@ export const RESOLVERS: Record<string, ResolverFn> = {
   MODEL_OVERLAY: generateModelOverlay,
   TASTE_PROFILE: generateTasteProfile,
   BIN_DIR: (ctx) => ctx.paths.binDir,
-  GBRAIN_CONTEXT_LOAD: generateGBrainContextLoad,
-  GBRAIN_SAVE_RESULTS: generateGBrainSaveResults,
   QUESTION_PREFERENCE_CHECK: generateQuestionPreferenceCheck,
   QUESTION_LOG: generateQuestionLog,
   INLINE_TUNE_FEEDBACK: generateInlineTuneFeedback,

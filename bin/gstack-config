@@ -28,16 +28,6 @@ CONFIG_HEADER='# gstack configuration — edit freely, changes take effect on ne
 # routing_declined: false   # Set to true to skip the CLAUDE.md routing injection
 #                           # prompt. Set back to false to be asked again.
 #
-# ─── Telemetry ───────────────────────────────────────────────────────
-# telemetry: off            # off | anonymous | community
-#                           #   off       — no data sent, no local analytics (default)
-#                           #   anonymous — counter only, no device ID
-#                           #   community — usage data + stable device ID
-#
-# ─── Updates ─────────────────────────────────────────────────────────
-# auto_upgrade: false       # true = silently upgrade on session start
-# update_check: true        # false = suppress version check notifications
-#
 # ─── Skill naming ────────────────────────────────────────────────────
 # skill_prefix: false       # true = namespace skills as /gstack-qa, /gstack-ship
 #                           # false = short names /qa, /ship
@@ -60,19 +50,6 @@ CONFIG_HEADER='# gstack configuration — edit freely, changes take effect on ne
 #                           # Unknown values default to "default" with a warning.
 #                           # See docs/designs/PLAN_TUNING_V1.md for rationale.
 #
-# ─── Artifacts sync (renamed from gbrain_sync_mode in v1.27.0.0) ─────
-# artifacts_sync_mode: off  # off | artifacts-only | full
-#                           #   off            — no sync (default)
-#                           #   artifacts-only — sync plans/designs/retros/learnings only
-#                           #                    (skip behavioral data: question-log,
-#                           #                    developer-profile, timeline)
-#                           #   full           — sync everything allowlisted
-#                           # Set by the first-run privacy stop-gate. See docs/gbrain-sync.md.
-#
-# artifacts_sync_mode_prompted: false
-#                           # Set to true once the privacy gate has asked the user.
-#                           # Flip back to false to be re-prompted.
-#
 # ─── Advanced ────────────────────────────────────────────────────────
 # codex_reviews: enabled    # disabled = skip Codex adversarial reviews in /ship
 # gstack_contributor: false # true = file field reports when gstack misbehaves
@@ -94,9 +71,6 @@ lookup_default() {
   case "$1" in
     proactive) echo "true" ;;
     routing_declined) echo "false" ;;
-    telemetry) echo "off" ;;
-    auto_upgrade) echo "false" ;;
-    update_check) echo "true" ;;
     skill_prefix) echo "false" ;;
     checkpoint_mode) echo "explicit" ;;
     checkpoint_push) echo "false" ;;
@@ -106,8 +80,6 @@ lookup_default() {
     skip_eng_review) echo "false" ;;
     workspace_root) echo "$HOME/conductor/workspaces" ;;
     cross_project_learnings) echo "" ;; # intentionally empty → unset triggers first-time prompt
-    artifacts_sync_mode) echo "off" ;;
-    artifacts_sync_mode_prompted) echo "false" ;;
     *) echo "" ;;
   esac
 }
@@ -169,10 +141,10 @@ case "${1:-}" in
     fi
     echo ""
     echo "# ─── Active values (including defaults for unset keys) ───"
-    for KEY in proactive routing_declined telemetry auto_upgrade update_check \
+    for KEY in proactive routing_declined \
                skill_prefix checkpoint_mode checkpoint_push explain_level \
                codex_reviews gstack_contributor skip_eng_review workspace_root \
-               artifacts_sync_mode artifacts_sync_mode_prompted; do
+               cross_project_learnings; do
       VALUE=$(grep -E "^${KEY}:" "$CONFIG_FILE" 2>/dev/null | tail -1 | awk '{print $2}' | tr -d '[:space:]' || true)
       SOURCE="default"
       if [ -n "$VALUE" ]; then
@@ -185,10 +157,10 @@ case "${1:-}" in
     ;;
   defaults)
     echo "# gstack-config defaults"
-    for KEY in proactive routing_declined telemetry auto_upgrade update_check \
+    for KEY in proactive routing_declined \
                skill_prefix checkpoint_mode checkpoint_push explain_level \
                codex_reviews gstack_contributor skip_eng_review workspace_root \
-               artifacts_sync_mode artifacts_sync_mode_prompted; do
+               cross_project_learnings; do
       printf '  %-24s %s\n' "$KEY:" "$(lookup_default "$KEY")"
     done
     ;;

@@ -22,7 +22,7 @@ for skill_dir in "$GSTACK_DIR"/*/; do
     new="gstack-$cur"
   else
     case "$cur" in gstack-*) ;; *) continue ;; esac
-    [ "$dir_name" = "$cur" ] && continue  # inherently prefixed (gstack-upgrade)
+    [ "$dir_name" = "$cur" ] && continue  # already in prefixed form
     new="${cur#gstack-}"
   fi
   tmp="$(mktemp "${skill_dir}/SKILL.md.XXXXXX")"

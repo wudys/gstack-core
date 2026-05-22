@@ -49,7 +49,6 @@ Invoke them by name (e.g., `/office-hours`).
 | `/document-release` | Update all docs to match what you just shipped. |
 | `/document-generate` | Generate Diataxis docs (tutorial / how-to / reference / explanation) from code. |
 | `/setup-deploy` | One-time deploy config detection (Fly.io, Render, Vercel, etc.). |
-| `/gstack-upgrade` | Update gstack to the latest version. |
 
 ### Operational + memory
 
@@ -63,8 +62,6 @@ Invoke them by name (e.g., `/office-hours`).
 | `/benchmark` | Performance regression detection (page load, Core Web Vitals). |
 | `/benchmark-models` | Cross-model benchmark for skills (Claude, GPT, Gemini side-by-side). |
 | `/cso` | OWASP Top 10 + STRIDE security audit. |
-| `/setup-gbrain` | Set up gbrain for cross-machine session memory sync. |
-| `/sync-gbrain` | Keep gbrain current with this repo's code; refresh agent search guidance in CLAUDE.md. |
 
 ### Browser + agent integration
 

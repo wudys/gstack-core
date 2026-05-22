@@ -149,20 +149,6 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   // confirm" plan write. runPlanSkillFloorCheck cannot detect that shape
   // (it exits on first AUQ); runPlanSkillCounting can.
   'plan-eng-multi-finding-batching': ['plan-eng-review/**', 'scripts/resolvers/preamble.ts', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completion-status.ts', 'scripts/resolvers/review.ts', 'test/helpers/claude-pty-runner.ts', 'test/fixtures/forcing-finding-seeds.ts', 'test/skill-e2e-plan-eng-multi-finding-batching.test.ts'],
-  'brain-privacy-gate':           ['scripts/resolvers/preamble/generate-brain-sync-block.ts', 'scripts/resolvers/preamble.ts', 'bin/gstack-brain-sync', 'bin/gstack-artifacts-init', 'bin/gstack-config', 'test/helpers/agent-sdk-runner.ts'],
-
-  // /setup-gbrain Path 4 (Remote MCP) — happy + bad-token end-to-end via
-  // Agent SDK. Gate-tier (deterministic stub server, fixed inputs); fires
-  // when the skill template, the verify helper, the artifacts-init helper,
-  // or the detect script changes.
-  'setup-gbrain-remote':          ['setup-gbrain/SKILL.md.tmpl', 'bin/gstack-gbrain-mcp-verify', 'bin/gstack-artifacts-init', 'bin/gstack-gbrain-detect', 'test/helpers/agent-sdk-runner.ts'],
-  'setup-gbrain-bad-token':       ['setup-gbrain/SKILL.md.tmpl', 'bin/gstack-gbrain-mcp-verify', 'test/helpers/agent-sdk-runner.ts'],
-  // v1.34.0.0 split-engine Path 4 + Step 4.5 Yes (local PGLite for code).
-  // Periodic-tier per codex #12 (AgentSDK harness is non-deterministic).
-  // Fires when the setup-gbrain template, install/verify/init helpers, or
-  // the agent-sdk-runner harness changes.
-  'setup-gbrain-path4-local-pglite': ['setup-gbrain/SKILL.md.tmpl', 'bin/gstack-gbrain-mcp-verify', 'bin/gstack-gbrain-install', 'bin/gstack-gbrain-detect', 'lib/gbrain-local-status.ts', 'test/helpers/agent-sdk-runner.ts'],
-
   // AskUserQuestion format regression (RECOMMENDATION + Completeness: N/10)
   // Fires when either template OR the two preamble resolvers change.
   'plan-ceo-review-format-mode':      ['plan-ceo-review/**', 'scripts/resolvers/preamble/generate-ask-user-format.ts', 'scripts/resolvers/preamble/generate-completeness-section.ts', 'scripts/resolvers/preamble.ts', 'model-overlays/opus-4-7.md', 'test/helpers/llm-judge.ts'],
@@ -276,8 +262,6 @@ export const E2E_TOUCHFILES: Record<string, string[]> = {
   'design-shotgun-session':         ['design-shotgun/**', 'scripts/resolvers/design.ts'],
   'design-shotgun-full':            ['design-shotgun/**', 'design/src/**', 'browse/src/**'],
 
-  // gstack-upgrade
-  'gstack-upgrade-happy-path': ['gstack-upgrade/**'],
 
   // Deploy skills
   'land-and-deploy-workflow':      ['land-and-deploy/**', 'scripts/gen-skill-docs.ts'],
@@ -476,21 +460,6 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   'plan-devex-finding-floor':  'gate',
   'plan-eng-multi-finding-batching': 'periodic',
 
-  // Privacy gate for gstack-brain-sync — periodic (non-deterministic LLM call,
-  // costs ~$0.30-$0.50 per run, not needed on every commit)
-  'brain-privacy-gate': 'periodic',
-
-  // /setup-gbrain Path 4 (Remote MCP) — periodic-tier. The stub HTTP
-  // server is deterministic but the model's interpretation of "follow
-  // Path 4 only" is not — assertions on which steps the model ran are
-  // flaky. The deterministic gate-tier coverage for Path 4 lives in
-  // test/setup-gbrain-path4-structure.test.ts (free, <200ms). These
-  // E2E tests stay available for on-demand verification of the live
-  // model's behavior against a stub MCP server.
-  'setup-gbrain-remote': 'periodic',
-  'setup-gbrain-bad-token': 'periodic',
-  'setup-gbrain-path4-local-pglite': 'periodic',
-
   // AskUserQuestion format regression — periodic (Opus 4.7 non-deterministic benchmark)
   'plan-ceo-review-format-mode': 'periodic',
   'plan-ceo-review-format-approach': 'periodic',
@@ -590,8 +559,6 @@ export const E2E_TIERS: Record<string, 'gate' | 'periodic'> = {
   'design-shotgun-session': 'gate',
   'design-shotgun-full': 'periodic',
 
-  // gstack-upgrade
-  'gstack-upgrade-happy-path': 'gate',
 
   // Deploy skills
   'land-and-deploy-workflow': 'gate',
@@ -690,7 +657,6 @@ export const LLM_JUDGE_TOUCHFILES: Record<string, string[]> = {
   // Other skills
   'retro/SKILL.md instructions':          ['retro/SKILL.md', 'retro/SKILL.md.tmpl'],
   'qa-only/SKILL.md workflow':            ['qa-only/SKILL.md', 'qa-only/SKILL.md.tmpl'],
-  'gstack-upgrade/SKILL.md upgrade flow': ['gstack-upgrade/SKILL.md', 'gstack-upgrade/SKILL.md.tmpl'],
 
   // Voice directive
   'voice directive tone':                 ['scripts/resolvers/preamble.ts', 'review/SKILL.md', 'review/SKILL.md.tmpl', 'scripts/gen-skill-docs.ts'],

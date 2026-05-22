@@ -76,7 +76,7 @@ for skill_dir in "$INSTALL_DIR"/*/; do
     [ "$link_name" != "$skill" ] && _cleanup_skill_entry "$SKILLS_DIR/$skill"
   else
     link_name="$skill"
-    # Don't remove gstack-* dirs that are their real name (e.g., gstack-upgrade)
+    # Don't remove gstack-* dirs that are their real name.
     case "$skill" in
       gstack-*) ;; # Already the real name, no old prefixed link to clean
       *)        _cleanup_skill_entry "$SKILLS_DIR/gstack-$skill" ;;

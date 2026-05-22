@@ -28,12 +28,13 @@ const kiro: HostConfig = {
     { from: '.claude/skills', to: '.kiro/skills' },
     { from: '~/.codex/skills/gstack', to: '~/.kiro/skills/gstack' },
     { from: '.codex/skills', to: '.kiro/skills' },
+    { from: 'CLAUDE.md', to: 'AGENTS.md' },
   ],
 
-  suppressedResolvers: ['GBRAIN_CONTEXT_LOAD', 'GBRAIN_SAVE_RESULTS'],
+  suppressedResolvers: [],
 
   runtimeRoot: {
-    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'gstack-upgrade', 'ETHOS.md'],
+    globalSymlinks: ['bin', 'browse/dist', 'browse/bin', 'ETHOS.md'],
     globalFiles: {
       'review': ['checklist.md', 'TODOS-format.md'],
     },

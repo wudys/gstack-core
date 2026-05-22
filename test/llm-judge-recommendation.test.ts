@@ -24,13 +24,13 @@ Stakes if we pick wrong: V1 ships months later, OR every other agent has to rebu
 ${recommendation}
 Note: options differ in kind, not coverage — no completeness score.
 Pros / cons:
-A) Server-side (gbrain ships the smarts)
-  ✅ Reusable across every agent that calls gbrain — Codex, Cursor, etc.
-  ❌ Cross-repo work; gbrain release tied to gstack release; slower V1
-B) Client-side (gstack ships the smarts) (recommended)
-  ✅ Ships entirely in gstack — no gbrain release dependency; faster V1
+A) Server-side (shared service ships the smarts)
+  ✅ Reusable across every agent that calls the service — Codex, Cursor, etc.
+  ❌ Cross-repo work; shared service release tied to client release; slower V1
+B) Client-side (local package ships the smarts) (recommended)
+  ✅ Ships entirely in the local package — no shared service release dependency; faster V1
   ❌ Every other agent has to rebuild the same logic; multi-call overhead
-C) Hybrid — V1 client-side, V1.5 promotes to gbrain
+C) Hybrid — V1 client-side, V1.5 promotes to shared service
   ✅ Ships V1 value without cross-repo coordination; clear migration path
   ❌ Two-phase shipping; V1.5 risks slipping if priorities shift
 Net: optimize for V1 ship velocity vs long-term agent reusability.`;
@@ -43,7 +43,7 @@ describeIfSelected('judgeRecommendation rubric sanity', ['llm-judge-recommendati
 
     // SUBSTANCE 5: option-specific reason that contrasts an alternative.
     const good5 = await judgeRecommendation(buildAUQ(
-      'Recommendation: Choose C because hybrid ships V1 in gstack-only without blocking on cross-repo gbrain coordination, and locks the migration path before other agents take a hard dependency.',
+      'Recommendation: Choose C because hybrid ships V1 in the local package without blocking on cross-repo shared-service coordination, and locks the migration path before other agents take a hard dependency.',
     ));
     expect(good5.present).toBe(true);
     expect(good5.commits).toBe(true);
@@ -55,7 +55,7 @@ describeIfSelected('judgeRecommendation rubric sanity', ['llm-judge-recommendati
 
     // SUBSTANCE 4: concrete option-specific reason without alternative comparison.
     const good4 = await judgeRecommendation(buildAUQ(
-      'Recommendation: Choose B because client-side composition uses MCP tools that already exist in gstack and avoids any gbrain release dependency for V1.',
+      'Recommendation: Choose B because client-side composition uses MCP tools that already exist locally and avoids any shared-service release dependency for V1.',
     ));
     expect(good4.present).toBe(true);
     expect(

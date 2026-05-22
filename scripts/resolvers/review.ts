@@ -9,7 +9,7 @@
  * Users invoke this explicitly via /plan-eng-review, /plan-ceo-review,
  * or /plan-design-review. No data is sent without user invocation.
  *
- * Review logs are stored locally at ~/.gstack/reviews/review-log.jsonl.
+ * Review outputs are stored in repo-local docs/reviews artifacts.
  * Codex CLI prompts are written to temp files to prevent shell injection.
  */
 import type { TemplateContext } from './types';
@@ -20,17 +20,13 @@ const CODEX_BOUNDARY = 'IMPORTANT: Do NOT read or execute any files under ~/.cla
 export function generateReviewDashboard(_ctx: TemplateContext): string {
   return `## Review Readiness Dashboard
 
-After completing the review, read the review log and config to display the dashboard.
+After completing the review, summarize repo-local review artifacts in docs/reviews/.
 
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-read
+cat docs/reviews/*.md 2>/dev/null || true
 \`\`\`
 
-Parse the output. Find the most recent entry for each skill (plan-ceo-review, plan-eng-review, review, plan-design-review, design-review-lite, adversarial-review, codex-review, codex-plan-review). Ignore entries with timestamps older than 7 days. For the Eng Review row, show whichever is more recent between \`review\` (diff-scoped pre-landing review) and \`plan-eng-review\` (plan-stage architecture review). Append "(DIFF)" or "(PLAN)" to the status to distinguish. For the Adversarial row, show whichever is more recent between \`adversarial-review\` (new auto-scaled) and \`codex-review\` (legacy). For Design Review, show whichever is more recent between \`plan-design-review\` (full visual audit) and \`design-review-lite\` (code-level check). Append "(FULL)" or "(LITE)" to the status to distinguish. For the Outside Voice row, show the most recent \`codex-plan-review\` entry — this captures outside voices from both /plan-ceo-review and /plan-eng-review.
-
-**Source attribution:** If the most recent entry for a skill has a \\\`"via"\\\` field, append it to the status label in parentheses. Examples: \`plan-eng-review\` with \`via:"autoplan"\` shows as "CLEAR (PLAN via /autoplan)". \`review\` with \`via:"ship"\` shows as "CLEAR (DIFF via /ship)". Entries without a \`via\` field show as "CLEAR (PLAN)" or "CLEAR (DIFF)" as before.
-
-Note: \`autoplan-voices\` and \`design-outside-voices\` entries are audit-trail-only (forensic data for cross-model consensus analysis). They do not appear in the dashboard and are not checked by any consumer.
+Parse the output. Look for recent review artifacts in docs/reviews/. Use artifact status fields and completion summaries when present. If no artifact exists for a row, show "not run" rather than inventing a status.
 
 Display:
 
@@ -129,9 +125,7 @@ Below the table, add these lines (omit any that are empty/not applicable):
 
 ### Write to the plan file
 
-**PLAN MODE EXCEPTION — ALWAYS RUN:** This writes to the plan file, which is the one
-file you are allowed to edit in plan mode. The plan file review report is part of the
-plan's living status.
+Always run this when a plan file is being reviewed. Write the review report to the plan file or to a repo-local docs/reviews/ artifact, depending on the user's preferred workflow.
 
 The report must always be the LAST section of the plan file — never mid-file.
 Use a single delete-then-append flow:
@@ -158,11 +152,10 @@ there — the user then sees a plan whose review report is not at the bottom and
 (correctly) rejects it.`;
 }
 
-export function generateExitPlanModeGate(_ctx: TemplateContext): string {
-  return `## EXIT PLAN MODE GATE (BLOCKING)
+export function generateCompletionGate(_ctx: TemplateContext): string {
+  return `## Completion Gate
 
-Before calling ExitPlanMode, run this self-check. If any item fails, do the
-missing work — do NOT call ExitPlanMode:
+Before ending the review, run this self-check. If any item fails, do the missing work:
 
 1. Read the plan file with the Read tool (after your most recent write to it).
 2. Confirm the LAST \`## \` heading in the file is \`## GSTACK REVIEW REPORT\`.
@@ -171,13 +164,9 @@ missing work — do NOT call ExitPlanMode:
    satisfies this check.
 3. Confirm the report contains: a Runs / Status / Findings table, a VERDICT
    line, and absorbs CODEX / CROSS-MODEL / UNRESOLVED lines if applicable.
-4. If a plan file is in context for this skill invocation: confirm
-   \`gstack-review-log\` was called and \`gstack-review-read\` was run at least
-   once. If no plan file is in context (e.g. \`/codex consult\` against a
-   diff with no plan), this check short-circuits — checks 1-3 already
-   short-circuit when no plan file exists.
+4. If durable context will help later work, confirm the relevant docs/reviews/ artifact was written or updated.
 
-Failing this gate and calling ExitPlanMode anyway is a contract violation —
+Failing this gate is a contract violation —
 the user will see a plan whose review report is missing or stale, and will
 (correctly) reject it. Self-deception failure mode to watch for: feeling
 "done" after writing review prose into the plan body. The body prose is not
@@ -186,7 +175,7 @@ must be the file's terminal heading.`;
 }
 
 export function generateAntiShortcutClause(_ctx: TemplateContext): string {
-  return `**Anti-shortcut clause:** The plan file is the OUTPUT of the interactive review, not a substitute for it. Writing every finding into one plan write and calling ExitPlanMode without firing AskUserQuestion is the precise failure mode of the May 2026 transcript bug — the model explored, found issues, and dumped them into a deliverable rather than walking the user through them. If you have ANY non-trivial finding in any review section, the path from finding to ExitPlanMode goes THROUGH AskUserQuestion. Zero findings in every section is the only path to ExitPlanMode that bypasses AskUserQuestion. If you find yourself wanting to write a plan with findings before asking, stop and call AskUserQuestion now — that's the bug, recognize it.`;
+  return `**Anti-shortcut clause:** The plan file is the OUTPUT of the interactive review, not a substitute for it. Writing every finding into one plan write without walking the user through decisions is the failure mode to avoid. If you have ANY non-trivial finding in any review section, the path from finding to final artifact goes THROUGH AskUserQuestion. Zero findings in every section is the only path that bypasses AskUserQuestion. If you find yourself wanting to write a plan with findings before asking, stop and call AskUserQuestion now — that's the bug, recognize it.`;
 }
 
 export function generateSpecReviewLoop(_ctx: TemplateContext): string {
@@ -245,12 +234,7 @@ After the loop completes (PASS, max iterations, or convergence guard):
 2. If issues remain after max iterations or convergence, add a "## Reviewer Concerns"
    section to the document listing each unresolved issue. Downstream skills will see this.
 
-3. Append metrics:
-\`\`\`bash
-mkdir -p ~/.gstack/analytics
-echo '{"skill":"${_ctx.skillName}","ts":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'","iterations":ITERATIONS,"issues_found":FOUND,"issues_fixed":FIXED,"remaining":REMAINING,"quality_score":SCORE}' >> ~/.gstack/analytics/spec-review.jsonl 2>/dev/null || true
-\`\`\`
-Replace ITERATIONS, FOUND, FIXED, REMAINING, SCORE with actual values from the review.`;
+3. If a durable record is useful, add the metrics to the relevant \`docs/reviews/\` artifact. Record ITERATIONS, FOUND, FIXED, REMAINING, and SCORE from the review.`;
 }
 
 export function generateBenefitsFrom(ctx: TemplateContext): string {
@@ -293,8 +277,7 @@ After /${first} completes, re-run the design doc check:
 setopt +o nomatch 2>/dev/null || true  # zsh compat
 SLUG=$(~/.claude/skills/gstack/browse/bin/remote-slug 2>/dev/null || basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null | tr '/' '-' || echo 'no-branch')
-DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-$BRANCH-design-*.md 2>/dev/null | head -1)
-[ -z "$DESIGN" ] && DESIGN=$(ls -t ~/.gstack/projects/$SLUG/*-design-*.md 2>/dev/null | head -1)
+DESIGN=$(ls -t docs/designs/*-$BRANCH-*.md docs/designs/*.md 2>/dev/null | head -1)
 [ -n "$DESIGN" ] && echo "Design doc found: $DESIGN" || echo "No design doc found"
 \`\`\`
 
@@ -561,7 +544,7 @@ If \`DIFF_TOTAL < 200\`: skip this section silently. The Claude + Codex adversar
 
 After all passes complete, persist:
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"adversarial-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","tier":"always","gate":"GATE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+Write the review result to the relevant \`docs/reviews/\` artifact or include it in the final response.
 \`\`\`
 Substitute: STATUS = "clean" if no findings across ALL passes, "issues_found" if any pass found issues. SOURCE = "both" if Codex ran, "claude" if only Claude subagent ran. GATE = the Codex structured review gate result ("pass"/"fail"), "skipped" if diff < 200, or "informational" if Codex was unavailable. If all passes failed, do NOT persist.
 
@@ -717,7 +700,7 @@ If no tension points exist, note: "No cross-model tension — both reviewers agr
 
 **Persist the result:**
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-log '{"skill":"codex-plan-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
+Write the review result to the relevant \`docs/reviews/\` artifact or include it in the final response.
 \`\`\`
 
 Substitute: STATUS = "clean" if no findings, "issues_found" if findings exist.
@@ -741,7 +724,7 @@ function generatePlanFileDiscovery(): string {
 setopt +o nomatch 2>/dev/null || true  # zsh compat
 BRANCH=$(git branch --show-current 2>/dev/null | tr '/' '-')
 REPO=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)")
-# Compute project slug for ~/.gstack/projects/ lookup
+# Compute project slug for docs/reviews lookup
 _PLAN_SLUG=$(git remote get-url origin 2>/dev/null | sed 's|.*[:/]\\([^/]*/[^/]*\\)\\.git$|\\1|;s|.*[:/]\\([^/]*/[^/]*\\)$|\\1|' | tr '/' '-' | tr -cd 'a-zA-Z0-9._-') || true
 _PLAN_SLUG="\${_PLAN_SLUG:-$(basename "$PWD" | tr -cd 'a-zA-Z0-9._-')}"
 # Search common plan file locations (project designs first, then personal/local)
@@ -1087,7 +1070,7 @@ export function generateCrossReviewDedup(ctx: TemplateContext): string {
 Before classifying findings, check if any were previously skipped by the user in a prior review on this branch.
 
 \`\`\`bash
-~/.claude/skills/gstack/bin/gstack-review-read
+cat docs/reviews/*.md 2>/dev/null || true
 \`\`\`
 
 Parse the output: only lines BEFORE \`---CONFIG---\` are JSONL entries (the output also contains \`---CONFIG---\` and \`---HEAD---\` footer sections that are not JSONL — ignore those).

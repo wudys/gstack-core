@@ -20,7 +20,6 @@
  */
 
 import { randomBytes, createHash } from 'crypto';
-import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -388,131 +387,11 @@ function rotateIfNeeded(): void {
 }
 
 /**
- * Try to locate the gstack-telemetry-log binary. Resolution order matches
- * the existing skill preamble pattern (never relies on PATH — packaged
- * binary layouts can break that).
- *
- * Order:
- *  1. ~/.claude/skills/gstack/bin/gstack-telemetry-log  (global install)
- *  2. .claude/skills/gstack/bin/gstack-telemetry-log    (symlinked dev)
- *  3. bin/gstack-telemetry-log                          (in-repo dev)
- */
-function findTelemetryBinary(): string | null {
-  const candidates = [
-    path.join(os.homedir(), '.claude', 'skills', 'gstack', 'bin', 'gstack-telemetry-log'),
-    path.resolve(process.cwd(), '.claude', 'skills', 'gstack', 'bin', 'gstack-telemetry-log'),
-    path.resolve(process.cwd(), 'bin', 'gstack-telemetry-log'),
-  ];
-  for (const c of candidates) {
-    try {
-      fs.accessSync(c, fs.constants.X_OK);
-      return c;
-    } catch {
-      // try next
-    }
-  }
-  return null;
-}
-
-/**
- * Resolve a bash binary for invoking shebang scripts on Windows. Mirrors the
- * GSTACK_*_BIN override pattern from `browse/src/claude-bin.ts:resolveClaudeCommand`
- * (introduced in v1.24.0.0 #1252) so users on WSL/MSYS2/non-default Git Bash
- * installs can redirect.
- *
- * Override precedence:
- *   1. GSTACK_BASH_BIN (or BASH_BIN) — absolute path or PATH-resolvable command.
- *   2. Plain Bun.which('bash') — finds Git Bash on the standard Windows install.
- *
- * Returns null if nothing resolves; callers must degrade gracefully (telemetry
- * already swallows spawn errors, so a null here means the local attempts.jsonl
- * audit trail keeps working without surfacing a Windows-only failure).
- */
-export function resolveBashBinary(env: NodeJS.ProcessEnv = process.env): string | null {
-  const PATH = env.PATH ?? env.Path ?? '';
-  const override = (env.GSTACK_BASH_BIN ?? env.BASH_BIN)?.trim();
-  if (override) {
-    const trimmed = override.replace(/^"(.*)"$/, '$1');
-    return path.isAbsolute(trimmed) ? trimmed : (Bun.which(trimmed, { PATH }) ?? null);
-  }
-  return Bun.which('bash', { PATH }) ?? null;
-}
-
-/**
- * Build the [cmd, args] tuple for invoking a bash-script telemetry binary
- * in a way that works on both POSIX and Windows.
- *
- * POSIX: returns [bin, args] unchanged — shebang gets honored by execve.
- * Win32: wraps in bash explicitly. `gstack-telemetry-log` is a shell script
- * (`#!/usr/bin/env bash`) and Windows `CreateProcess` can't dispatch on a
- * shebang — it tries to load the file as a PE image, fails with ENOEXEC,
- * and our 'error' handler silently swallows it. Resolves bash via the same
- * Bun.which + GSTACK_*_BIN override pattern as claude-bin.ts.
- *
- * Returns null when bash can't be resolved on Windows (rare — Git Bash ships
- * with the standard gstack install path). Caller skips spawn; the local
- * attempts.jsonl write still gives the audit trail.
- *
- * Exported for testability — resolution is a pure function of (platform,
- * env, bin, args) so we can assert on it without actually spawning.
- */
-export function buildTelemetrySpawnCommand(
-  bin: string,
-  args: string[],
-  env: NodeJS.ProcessEnv = process.env,
-): { cmd: string; cmdArgs: string[] } | null {
-  if (process.platform === 'win32') {
-    const bashPath = resolveBashBinary(env);
-    if (!bashPath) return null;
-    return { cmd: bashPath, cmdArgs: [bin, ...args] };
-  }
-  return { cmd: bin, cmdArgs: args };
-}
-
-/**
- * Fire-and-forget subprocess invocation of gstack-telemetry-log with the
- * attack_attempt event type. The binary handles tier gating internally
- * (community → upload, anonymous → local only, off → no-op), so we don't
- * need to re-check here.
- *
- * Never throws. Never blocks. If the binary isn't found or spawn fails, the
- * local attempts.jsonl write from logAttempt() still gives us the audit trail.
- */
-function reportAttemptTelemetry(record: AttemptRecord): void {
-  const bin = findTelemetryBinary();
-  if (!bin) return;
-  try {
-    const result = buildTelemetrySpawnCommand(bin, [
-      '--event-type', 'attack_attempt',
-      '--url-domain', record.urlDomain || '',
-      '--payload-hash', record.payloadHash,
-      '--confidence', String(record.confidence),
-      '--layer', record.layer,
-      '--verdict', record.verdict,
-    ]);
-    if (!result) return;
-    const child = spawn(result.cmd, result.cmdArgs, {
-      stdio: 'ignore',
-      detached: true,
-    });
-    // unref so this subprocess doesn't hold the event loop open
-    child.unref();
-    child.on('error', () => { /* swallow — telemetry must never break sidebar */ });
-  } catch {
-    // Spawn failure is non-fatal.
-  }
-}
-
-/**
- * Append an attempt to the local log AND fire telemetry via
- * gstack-telemetry-log (which respects the user's telemetry tier setting).
+ * Append an attempt to the local log.
  * Never throws — logging failure should not break the sidebar.
  * Returns true if the local write succeeded.
  */
 export function logAttempt(record: AttemptRecord): boolean {
-  // Fire telemetry first, async — even if local write fails, we still want
-  // the event reported (it goes to a different directory anyway).
-  reportAttemptTelemetry(record);
   try {
     mkdirSecure(SECURITY_DIR);
     rotateIfNeeded();
@@ -533,7 +412,7 @@ const STATE_FILE = path.join(SECURITY_DIR, 'session-state.json');
 export interface SessionState {
   sessionId: string;
   canary: string;
-  warnedDomains: string[]; // per-session rate limit for special telemetry
+  warnedDomains: string[]; // per-session rate limit for special warnings
   classifierStatus: {
     testsavant: 'ok' | 'degraded' | 'off';
     transcript: 'ok' | 'degraded' | 'off';

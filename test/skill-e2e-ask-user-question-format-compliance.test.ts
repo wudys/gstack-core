@@ -93,8 +93,8 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
         // etc) so the agent isn't blocked.
         //
         // Budget bumped 300s → 540s in v1.32: /plan-ceo-review's preamble runs
-        // multiple bash blocks (gbrain sync probe, telemetry, learnings search,
-        // dashboard read) before reaching its mode-selection AskUserQuestion in
+        // multiple bash blocks (local setup, learnings search, dashboard read)
+        // before reaching its mode-selection AskUserQuestion in
         // Step 0F. On substantive branches (or under contention from concurrent
         // tests running at max-concurrency 15), 300s sometimes wasn't enough
         // for the model to drain Step 0 work before emitting the first AUQ.

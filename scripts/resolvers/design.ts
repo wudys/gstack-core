@@ -55,13 +55,9 @@ source <(${ctx.paths.binDir}/gstack-diff-scope <base> 2>/dev/null)
 
 5. **Include findings** in the review output under a "Design Review" header, following the output format in the checklist. Design findings merge with code review findings into the same Fix-First flow.
 
-6. **Log the result** for the Review Readiness Dashboard:
+6. **Persist the result** in the final response or the relevant \`docs/reviews/\` artifact.
 
-\`\`\`bash
-${ctx.paths.binDir}/gstack-review-log '{"skill":"design-review-lite","timestamp":"TIMESTAMP","status":"STATUS","findings":N,"auto_fixed":M,"commit":"COMMIT"}'
-\`\`\`
-
-Substitute: TIMESTAMP = ISO 8601 datetime, STATUS = "clean" if 0 findings or "issues_found", N = total findings, M = auto-fixed count, COMMIT = output of \`git rev-parse --short HEAD\`.${codexBlock}`;
+Include: TIMESTAMP = ISO 8601 datetime, STATUS = "clean" if 0 findings or "issues_found", N = total findings, M = auto-fixed count, COMMIT = output of \`git rev-parse --short HEAD\`.${codexBlock}`;
 }
 
 // NOTE: design-checklist.md is a subset of this methodology for code-level detection.
@@ -365,9 +361,9 @@ Compare screenshots and observations across pages for:
 
 **Project-scoped:**
 \`\`\`bash
-eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p ~/.gstack/projects/$SLUG
+eval "$(~/.claude/skills/gstack/bin/gstack-slug 2>/dev/null)" && mkdir -p docs/reviews/$SLUG
 \`\`\`
-Write to: \`~/.gstack/projects/{slug}/{user}-{branch}-design-audit-{datetime}.md\`
+Write to: \`docs/reviews/{slug}/{user}-{branch}-design-audit-{datetime}.md\`
 
 **Baseline:** Write \`design-baseline.json\` for regression mode:
 \`\`\`json
@@ -719,11 +715,8 @@ Present Codex output under a \`CODEX SAYS (design ${isPlanDesignReview ? 'critiq
 Present subagent output under a \`CLAUDE SUBAGENT (design ${isPlanDesignReview ? 'completeness' : isDesignReview ? 'consistency' : 'direction'}):\` header.
 ${synthesisSection}
 
-**Log the result:**
-\`\`\`bash
-${ctx.paths.binDir}/gstack-review-log '{"skill":"design-outside-voices","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","commit":"'"$(git rev-parse --short HEAD)"'"}'
-\`\`\`
-Replace STATUS with "clean" or "issues_found", SOURCE with "codex+subagent", "codex-only", "subagent-only", or "unavailable".`;
+**Persist the result:** Write the review outcome to the final response or the relevant \`docs/reviews/\` artifact.
+Include STATUS as "clean" or "issues_found", and SOURCE as "codex+subagent", "codex-only", "subagent-only", or "unavailable".`;
 }
 
 // ─── Design Hard Rules (OpenAI framework + gstack slop blacklist) ───
@@ -825,9 +818,9 @@ Commands:
 - \`$D iterate --session /path/session.json --feedback "..." --output /path.png\` — iterate
 
 **CRITICAL PATH RULE:** All design artifacts (mockups, comparison boards, approved.json)
-MUST be saved to \`~/.gstack/projects/$SLUG/designs/\`, NEVER to \`.context/\`,
-\`docs/designs/\`, \`/tmp/\`, or any project-local directory. Design artifacts are USER
-data, not project files. They persist across branches, conversations, and workspaces.`;
+MUST be saved to \`docs/designs/assets/$SLUG/\` or the feature-specific
+\`docs/designs/\` artifact. Do not put durable design output in \`.context/\` or
+\`/tmp/\`.`;
 }
 
 export function generateDesignMockup(ctx: TemplateContext): string {
@@ -1014,7 +1007,7 @@ export function generateTasteProfile(ctx: TemplateContext): string {
   return `Read the persistent taste profile if it exists:
 
 \`\`\`bash
-_TASTE_PROFILE=~/.gstack/projects/$SLUG/taste-profile.json
+_TASTE_PROFILE=docs/designs/assets/$SLUG/taste-profile.json
 if [ -f "$_TASTE_PROFILE" ]; then
   # Schema v1: { dimensions: { fonts, colors, layouts, aesthetics }, sessions: [] }
   # Each dimension has approved[] and rejected[] entries with
@@ -1139,4 +1132,3 @@ Flat design can strip away useful visual information that signals interactivity.
 Prioritize ruthlessly: things needed in a hurry go close at hand, everything
 else a few taps away with an obvious path to get there.`;
 }
-

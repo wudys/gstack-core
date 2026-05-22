@@ -19,7 +19,6 @@ import { BrowserManager } from '../src/browser-manager';
 
 const TMP_HOME = path.join(os.tmpdir(), `gstack-cdp-e2e-${process.pid}-${Date.now()}`);
 process.env.GSTACK_HOME = TMP_HOME;
-process.env.GSTACK_TELEMETRY_OFF = '1'; // don't pollute analytics during tests
 
 let testServer: ReturnType<typeof startTestServer>;
 let bm: BrowserManager;

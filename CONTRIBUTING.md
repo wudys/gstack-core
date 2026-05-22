@@ -333,7 +333,7 @@ When Conductor creates a new workspace, `bin/dev-setup` runs automatically. It d
 
 **First-time setup:** Put your `ANTHROPIC_API_KEY` in `.env` in the main repo (see `.env.example`). Every Conductor workspace inherits it automatically.
 
-**`GSTACK_*` env prefix (Conductor-injected keys).** Conductor explicitly strips `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` from every workspace's process env. The `.env` copy path doesn't restore them either — the strip happens after env inheritance. Users who want paid evals, `/sync-gbrain` embeddings, or `claude-agent-sdk` calls to work in a Conductor workspace must set `GSTACK_ANTHROPIC_API_KEY` and `GSTACK_OPENAI_API_KEY` in Conductor's workspace env config; Conductor passes those through untouched. On the gstack side, TS entry points import `lib/conductor-env-shim.ts` as a side effect, which promotes `GSTACK_FOO_API_KEY` to `FOO_API_KEY` when the canonical name is empty. If you add a new TS entry point that hits a paid API, add `import "../lib/conductor-env-shim";` to the top of the file. Today the shim is imported from `bin/gstack-gbrain-sync.ts`, `bin/gstack-model-benchmark`, `scripts/preflight-agent-sdk.ts`, and `test/helpers/e2e-helpers.ts`.
+**`GSTACK_*` env prefix (Conductor-injected keys).** Conductor explicitly strips `ANTHROPIC_API_KEY` and `OPENAI_API_KEY` from every workspace's process env. The `.env` copy path doesn't restore them either — the strip happens after env inheritance. Users who want paid evals or SDK calls to work in a Conductor workspace must set `GSTACK_ANTHROPIC_API_KEY` and `GSTACK_OPENAI_API_KEY` in Conductor's workspace env config; Conductor passes those through untouched. On the gstack side, TS entry points import `lib/conductor-env-shim.ts` as a side effect, which promotes `GSTACK_FOO_API_KEY` to `FOO_API_KEY` when the canonical name is empty. If you add a new TS entry point that hits a paid API, add `import "../lib/conductor-env-shim";` to the top of the file.
 
 ## Things to know
 
@@ -429,56 +429,6 @@ When community PRs accumulate, batch them into themed waves:
    in merge commits. Include a summary table of what merged and what closed.
 
 See [PR #205](../../pull/205) (v0.8.3) for the first wave as an example.
-
-## Upgrade migrations
-
-When a release changes on-disk state (directory structure, config format, stale
-files) in ways that `./setup` alone can't fix, add a migration script so existing
-users get a clean upgrade.
-
-### When to add a migration
-
-- Changed how skill directories are created (symlinks vs real dirs)
-- Renamed or moved config keys in `~/.gstack/config.yaml`
-- Need to delete orphaned files from a previous version
-- Changed the format of `~/.gstack/` state files
-
-Don't add a migration for: new features (users get them automatically), new
-skills (setup discovers them), or code-only changes (no on-disk state).
-
-### How to add one
-
-1. Create `gstack-upgrade/migrations/v{VERSION}.sh` where `{VERSION}` matches
-   the VERSION file for the release that needs the fix.
-2. Make it executable: `chmod +x gstack-upgrade/migrations/v{VERSION}.sh`
-3. The script must be **idempotent** (safe to run multiple times) and
-   **non-fatal** (failures are logged but don't block the upgrade).
-4. Include a comment block at the top explaining what changed, why the
-   migration is needed, and which users are affected.
-
-Example:
-
-```bash
-#!/usr/bin/env bash
-# Migration: v0.15.2.0 — Fix skill directory structure
-# Affected: users who installed with --no-prefix before v0.15.2.0
-set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
-"$SCRIPT_DIR/bin/gstack-relink" 2>/dev/null || true
-```
-
-### How it runs
-
-During `/gstack-upgrade`, after `./setup` completes (Step 4.75), the upgrade
-skill scans `gstack-upgrade/migrations/` and runs every `v*.sh` script whose
-version is newer than the user's old version. Scripts run in version order.
-Failures are logged but never block the upgrade.
-
-### Testing migrations
-
-Migrations are tested as part of `bun test` (tier 1, free). The test suite
-verifies that all migration scripts in `gstack-upgrade/migrations/` are
-executable and parse without syntax errors.
 
 ## Shipping your changes
 
