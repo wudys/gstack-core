@@ -23,7 +23,7 @@ export function generateReviewDashboard(_ctx: TemplateContext): string {
 After completing the review, summarize repo-local review artifacts in docs/reviews/.
 
 \`\`\`bash
-cat docs/reviews/*.md 2>/dev/null || true
+find docs/reviews -maxdepth 1 -name '*.md' -type f -print0 2>/dev/null | xargs -0 cat 2>/dev/null || true
 \`\`\`
 
 Parse the output. Look for recent review artifacts in docs/reviews/. Use artifact status fields and completion summaries when present. If no artifact exists for a row, show "not run" rather than inventing a status.
@@ -52,6 +52,8 @@ Display:
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
 - **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Claude adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
 - **Outside Voice (optional):** Independent plan review from a different AI model. Offered after all review sections complete in /plan-ceo-review and /plan-eng-review. Falls back to Claude subagent if Codex is unavailable. Never gates shipping.
+
+**Review artifact sources:** \`plan-eng-review, review, plan-design-review\`. Treat \`review\` (diff-scoped pre-landing review) and \`plan-eng-review\` (plan-stage architecture review) as valid Eng Review sources.
 
 **Verdict logic:**
 - **CLEARED**: Eng Review has >= 1 entry within 7 days from either \\\`review\\\` or \\\`plan-eng-review\\\` with status "clean" (or \\\`skip_eng_review\\\` is \\\`true\\\`)
@@ -544,7 +546,7 @@ If \`DIFF_TOTAL < 200\`: skip this section silently. The Claude + Codex adversar
 
 After all passes complete, persist:
 \`\`\`bash
-Write the review result to the relevant \`docs/reviews/\` artifact or include it in the final response.
+${ctx.paths.binDir}/gstack-review-log '{"skill":"adversarial-review","timestamp":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'","status":"STATUS","source":"SOURCE","tier":"always","gate":"GATE","commit":"'"$(git rev-parse --short HEAD)"'"}'
 \`\`\`
 Substitute: STATUS = "clean" if no findings across ALL passes, "issues_found" if any pass found issues. SOURCE = "both" if Codex ran, "claude" if only Claude subagent ran. GATE = the Codex structured review gate result ("pass"/"fail"), "skipped" if diff < 200, or "informational" if Codex was unavailable. If all passes failed, do NOT persist.
 
@@ -1070,7 +1072,7 @@ export function generateCrossReviewDedup(ctx: TemplateContext): string {
 Before classifying findings, check if any were previously skipped by the user in a prior review on this branch.
 
 \`\`\`bash
-cat docs/reviews/*.md 2>/dev/null || true
+find docs/reviews -maxdepth 1 -name '*.md' -type f -print0 2>/dev/null | xargs -0 cat 2>/dev/null || true
 \`\`\`
 
 Parse the output: only lines BEFORE \`---CONFIG---\` are JSONL entries (the output also contains \`---CONFIG---\` and \`---HEAD---\` footer sections that are not JSONL — ignore those).

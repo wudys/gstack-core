@@ -798,7 +798,7 @@ Record the local review result:
 After completing the review, summarize repo-local review artifacts in docs/reviews/.
 
 ```bash
-cat docs/reviews/*.md 2>/dev/null || true
+find docs/reviews -maxdepth 1 -name '*.md' -type f -print0 2>/dev/null | xargs -0 cat 2>/dev/null || true
 ```
 
 Parse the output. Look for recent review artifacts in docs/reviews/. Use artifact status fields and completion summaries when present. If no artifact exists for a row, show "not run" rather than inventing a status.
@@ -827,6 +827,8 @@ Display:
 - **Design Review (optional):** Use your judgment. Recommend it for UI/UX changes. Skip for backend-only, infra, or prompt-only changes.
 - **Adversarial Review (automatic):** Always-on for every review. Every diff gets both Claude adversarial subagent and Codex adversarial challenge. Large diffs (200+ lines) additionally get Codex structured review with P1 gate. No configuration needed.
 - **Outside Voice (optional):** Independent plan review from a different AI model. Offered after all review sections complete in /plan-ceo-review and /plan-eng-review. Falls back to Claude subagent if Codex is unavailable. Never gates shipping.
+
+**Review artifact sources:** `plan-eng-review, review, plan-design-review`. Treat `review` (diff-scoped pre-landing review) and `plan-eng-review` (plan-stage architecture review) as valid Eng Review sources.
 
 **Verdict logic:**
 - **CLEARED**: Eng Review has >= 1 entry within 7 days from either \`review\` or \`plan-eng-review\` with status "clean" (or \`skip_eng_review\` is \`true\`)

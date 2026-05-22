@@ -58,7 +58,6 @@ do_migrate() {
     const lines = (await Bun.stdin.text()).trim().split('\n').filter(Boolean);
     const sessions = [];
     const signalsAcc = {};
-    const resources = new Set();
     const topics = new Set();
     for (const line of lines) {
       try {
@@ -67,7 +66,6 @@ do_migrate() {
         for (const s of (e.signals || [])) {
           signalsAcc[s] = (signalsAcc[s] || 0) + 1;
         }
-        for (const r of (e.resources_shown || [])) resources.add(r);
         for (const t of (e.topics || [])) topics.add(t);
       } catch {}
     }
@@ -89,7 +87,6 @@ do_migrate() {
       overrides: {},
       sessions,
       signals_accumulated: signalsAcc,
-      resources_shown: Array.from(resources),
       topics: Array.from(topics),
       migrated_at: new Date().toISOString(),
       schema_version: 1,
@@ -183,7 +180,6 @@ do_read() {
     const builderSessions = sessions.filter(e => e.mode !== 'startup').length;
     const nudgeEligible = builderSessions >= 3 && totalSignals >= 5;
 
-    const resources = p.resources_shown || [];
     const topics = p.topics || [];
 
     console.log('SESSION_COUNT: ' + count);
@@ -197,8 +193,6 @@ do_read() {
     console.log('TOTAL_SIGNAL_COUNT: ' + totalSignals);
     console.log('CROSS_PROJECT: ' + crossProject);
     console.log('NUDGE_ELIGIBLE: ' + nudgeEligible);
-    console.log('RESOURCES_SHOWN: ' + resources.join(','));
-    console.log('RESOURCES_SHOWN_COUNT: ' + resources.length);
     console.log('TOPICS: ' + topics.join(','));
   "
 }
