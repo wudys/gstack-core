@@ -93,8 +93,8 @@ from the work being done.
 Try to determine how long this session has been active:
 
 ```bash
-if [ -n "$_TEL_START" ]; then
-  START_EPOCH="$_TEL_START"
+if [ -n "$_RUN_START" ]; then
+  START_EPOCH="$_RUN_START"
 elif [ -n "$PPID" ]; then
   START_EPOCH=$(ps -o lstart= -p $PPID 2>/dev/null | xargs -I{} date -jf "%c" "{}" "+%s" 2>/dev/null || echo "")
 fi
