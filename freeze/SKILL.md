@@ -42,6 +42,8 @@ Ask the user which directory to restrict edits to. Use AskUserQuestion:
 
 - Question: "Which directory should I restrict edits to? Files outside this path will be blocked from editing."
 - Text input (not multiple choice) — the user types a path.
+- This is a short text-input prompt, not a decision brief. Still call
+  AskUserQuestion; prose alone is not enough.
 
 Once the user provides a directory path:
 

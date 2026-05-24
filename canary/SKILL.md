@@ -146,7 +146,19 @@ AI orchestrator (e.g., OpenClaw). In spawned sessions:
 
 ### Format
 
-Every AskUserQuestion is a decision brief and must be sent as tool_use, not prose.
+Every AskUserQuestion decision needs two parts:
+
+1. First, send the complete decision brief as normal prose in the conversation
+   flow, preserving every required section below.
+2. Then call AskUserQuestion only for the interaction:
+   - `question`: one concise line, e.g. `D<N> — choose an option for <title>`.
+   - `options`: short labels plus descriptions; keep `(recommended)` on the
+     recommended option label or description.
+
+Do not shorten, summarize, or omit the visible brief to make the tool prompt
+smaller. The full brief lives in the conversation; the tool prompt is only the
+answer control. The prose brief is not a substitute for the tool call: do not
+continue until AskUserQuestion has been called and the user has answered.
 
 ```
 D<N> — <one-line question title>
@@ -210,7 +222,8 @@ Before calling AskUserQuestion, verify:
 - [ ] (recommended) label on one option (even for neutral-posture)
 - [ ] Dual-scale effort labels on effort-bearing options (human / CC)
 - [ ] Net line closes the decision
-- [ ] You are calling the tool, not writing prose
+- [ ] The complete brief is visible in conversation prose before the tool call
+- [ ] AskUserQuestion is still called for the actual interaction; prose alone is not enough
 - [ ] Non-ASCII characters (CJK / accents) written directly, NOT \u-escaped
 
 

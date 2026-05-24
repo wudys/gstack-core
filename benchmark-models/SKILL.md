@@ -199,6 +199,17 @@ You are running the `/benchmark-models` workflow. Wraps the `gstack-model-benchm
 
 Different from `/benchmark` — that skill measures web page performance (Core Web Vitals, load times). This skill measures AI model performance on gstack skills or arbitrary prompts.
 
+## AskUserQuestion display contract
+
+This skill is preamble-tier 1, so it does not receive the shared
+AskUserQuestion Format section. For every AskUserQuestion below:
+
+1. First, show the relevant step context as normal prose in the conversation:
+   the Simplify line, Recommendation, and Options already specified below.
+2. Then call AskUserQuestion only for the short interaction control.
+3. Do not expand these prompts into the full shared decision-brief format. The
+   prose context is not a substitute for the tool call; prose alone is not enough.
+
 ---
 
 ## Step 0: Locate the binary

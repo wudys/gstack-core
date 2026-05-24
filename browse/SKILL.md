@@ -378,6 +378,7 @@ $B handoff "Stuck on CAPTCHA at login page"
 # 2. Tell the user what happened (via AskUserQuestion)
 #    "I've opened Chrome at the login page. Please solve the CAPTCHA
 #     and let me know when you're done."
+#    Prose alone is not enough; use AskUserQuestion so the session waits.
 
 # 3. When user says "done", re-snapshot and continue
 $B resume

@@ -50,6 +50,8 @@ Ask the user which directory to restrict edits to. Use AskUserQuestion:
 
 - Question: "Guard mode: which directory should edits be restricted to? Destructive command warnings are always on. Files outside the chosen path will be blocked from editing."
 - Text input (not multiple choice) — the user types a path.
+- This is a short text-input prompt, not a decision brief. Still call
+  AskUserQuestion; prose alone is not enough.
 
 Once the user provides a directory path:
 

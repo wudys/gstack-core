@@ -1,10 +1,10 @@
 /**
  * AskUserQuestion format-compliance smoke (gate, paid, real-PTY).
  *
- * Asserts: when /plan-ceo-review fires its first AskUserQuestion in plan
- * mode, the rendered TTY output contains every element the preamble
- * format spec mandates (scripts/resolvers/preamble/generate-ask-user-format.ts
- * + voice directive):
+ * Asserts: when /plan-ceo-review reaches its first AskUserQuestion in plan
+ * mode, the rendered TTY output shows every element the preamble format
+ * spec mandates before or alongside the active interaction
+ * (scripts/resolvers/preamble/generate-ask-user-format.ts + voice directive):
  *
  *   1. ELI10 prose paragraph
  *   2. "Recommendation:" line
@@ -16,8 +16,8 @@
  * Why real-PTY: the existing skill-e2e-plan-format tests cover what the
  * AGENT writes via the SDK (capture-to-file harness). This test covers
  * what the USER actually sees in the terminal — different bug class
- * (e.g., AskUserQuestion tool truncates long prose, conductor renderer mangles
- * bullets, model collapses sections under token pressure). Two layers
+ * (e.g., the decision brief is missing, conductor renderer mangles bullets,
+ * model collapses sections under token pressure). Two layers
  * of defense for a format-discipline regression that previously ate ~6
  * weeks of compliance drift before it was noticed.
  *
@@ -69,7 +69,7 @@ function findFormatGaps(visible: string): FormatGap[] {
 
 describeE2E('AskUserQuestion format compliance (gate)', () => {
   test(
-    'first AskUserQuestion from /plan-ceo-review contains all 7 mandated format elements',
+    'first /plan-ceo-review decision shows all 7 mandated format elements with an active AskUserQuestion',
     async () => {
       const session = await launchClaudePty({
         permissionMode: 'plan',
@@ -82,11 +82,11 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
         const since = session.mark();
         session.send('/plan-ceo-review\r');
 
-        // Wait for a SKILL AskUserQuestion. Strategy: poll the visible buffer until it
-        // contains both a numbered-option list AND the format markers we
-        // expect (ELI10 + Recommendation). When both are present, it IS a
-        // real format-compliant AskUserQuestion — not a permission dialog or trust
-        // prompt.
+        // Wait for a SKILL decision prompt. Strategy: poll the visible buffer
+        // until it contains both a numbered-option list AND the format markers
+        // we expect (ELI10 + Recommendation). When both are present, it is a
+        // real format-compliant decision interaction — not a permission dialog
+        // or trust prompt.
         //
         // While polling, auto-grant any permission dialogs we see in the
         // recent tail (preamble side-effects: touch on a sensitive file,
@@ -122,8 +122,8 @@ describeE2E('AskUserQuestion format compliance (gate)', () => {
           const visible = session.visibleSince(since);
           // Marker check: anywhere in the post-slash region. Since `since`
           // is set right after sending /plan-ceo-review, there's no stale
-          // AskUserQuestion above this line — the only AskUserQuestion that can produce these
-          // markers is the current one.
+          // decision prompt above this line — the only current decision prompt
+          // can produce these markers.
           const hasEli10 = /ELI10\s*:/i.test(visible);
           const hasRecommend = /Recommendation\s*:/i.test(visible);
 
